@@ -77,3 +77,8 @@ While these components can still be included in the fen query, they are ignored 
 ``` bash
 curl -X GET 'https://chess.boehnen.net?fen=r1bqkbnr/pppppppp/2n5/8/8/2N5/PPPPPPPP/R1BQKBNR' -o board.svg
 ```
+
+# Contributing
+- Found a bug? Have an idea for improvement? [Open an issue](https://github.com/boehnen/openchess-rs/issues) to let us know.
+- Want to contribute code? Fork the repository, make your changes, and [submit a pull request](https://github.com/boehnen/openchess-rs/pulls).
+- Have a feature in mind? [Request it](https://github.com/boehnen/openchess-rs/issues) through our issue tracker.
