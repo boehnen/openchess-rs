@@ -50,8 +50,8 @@ The `200 OK` response is an SVG image of the chessboard representing the specifi
 ### Query Parameters
 The API supports the following query parameters:
 
-| Parameter Name | Description |
-|----------------|-------------|
+| Parameter | Description |
+|-----------|-------------|
 |`fen` (required) | The board position in FEN notation. |
 | `theme` (optional) | Specify a board theme (`classic` or `modern`). |
 | `rotation` (optional) | Rotate the board in 90 degree increments (`0`, `90`, `180` or `270`). |
