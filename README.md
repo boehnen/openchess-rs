@@ -52,10 +52,10 @@ The API supports the following query parameters:
 
 | Parameter Name | Optionality | Description |
 |----------------|-------------|----------------------------------------------| 
-|'fen' | Required | The board position in FEN notation. |
-| 'theme' | Optional | Specify a board theme (`classic` or `modern`). |
-| 'rotation' | Optional | Rotate the board in 90 degree increments (`0`, `90`, `180` or `270`). | 
-| 'labels' | Optional | Include coordinate labels on the board (`true` or `false`). |
+|`fen` | Required | The board position in FEN notation. |
+| `theme` | Optional | Specify a board theme (`classic` or `modern`). |
+| `rotation` | Optional | Rotate the board in 90 degree increments (`0`, `90`, `180` or `270`). | 
+| `labels` | Optional | Include coordinate labels on the board (`true` or `false`). |
 
 ### FEN
 ```
