@@ -1,8 +1,7 @@
-use axum::{http::StatusCode, routing::get, Router};
 mod chess;
 
-use chess::board::ChessBoard;
-use chess::piece::PieceState;
+use chess::{board::ChessBoard, piece::PieceState};
+use axum::{http::StatusCode, routing::get, Router};
 
 async fn healthcheck() -> StatusCode {
     StatusCode::OK

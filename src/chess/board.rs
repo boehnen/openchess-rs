@@ -60,7 +60,9 @@ impl ChessBoard {
         col * 4 // each piece is allocated 4 bits
     }
 
-    /// Returns a mask that singles out the 
+    /// Returns a mask that singles out the desired column
+    /// e.g. col 0: 0x0000000F
+    /// e.g. col 7: 0xF0000000
     fn col_mask(col: u32) -> u32 {
         0xF << Self::col_shift(col)
     }
