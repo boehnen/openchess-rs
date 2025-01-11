@@ -17,7 +17,7 @@ impl ChessBoard {
     pub fn from_fen(fen: &str) -> Result<Self, String> {
         let mut board = ChessBoard::new();
         
-        // Isolate the piece positions for the rest of FEN notation
+        // Isolate the piece positions from the rest of FEN notation
         let board_part = fen.split_whitespace().next().unwrap_or(fen);
         
         // Split the piece positions by row
@@ -41,8 +41,7 @@ impl ChessBoard {
                         col_index += digit;
                     }
                     else{
-                        // Failure to parse character as numeric digit
-                        return Err(format!("Invalid FEN: row: {row}"));
+                        return Err(format!("Character {c} failed to convert to digit"));
                     }
                 } else {
                     let piece = Self::piece_from_char(c)?;
@@ -61,6 +60,11 @@ impl ChessBoard {
         col * 4 // each piece is allocated 4 bits
     }
 
+    /// Returns a mask that singles out the 
+    fn col_mask(col: u32) -> u32 {
+        0xF << Self::col_shift(col)
+    }
+
     /// Maps FEN piece notation to PieceState Enum
     fn piece_from_char(c: char) -> Result<PieceState, String> {
         match c {
@@ -76,14 +80,14 @@ impl ChessBoard {
             'r' => Ok(PieceState::BRook),
             'q' => Ok(PieceState::BQueen),
             'k' => Ok(PieceState::BKing),
-            _   => Err(format!("Invalid piece character: {c}")),
+            _   => Err(format!("Invalid FEN: piece character: {c}")),
         }
     }
 
     /// Returns the PieceState at the given position
-    pub fn get_piece(&self, row: usize, col: usize) -> PieceState {
-        // shift the row right col columns, then mask lower 4, this maps to PieceState Enum
-        let nibble = ((self.rows[row] >> Self::col_shift(col as u32)) & 0xF) as u8; 
+    pub fn get_piece(&self, row: u32, col: u32) -> PieceState {
+        // mask the column from the row then shift to lower 4 bits
+        let nibble = (self.rows[row as usize] & Self::col_mask(col)) >> Self::col_shift(col); 
         match nibble {
             0  => PieceState::Empty,
             1  => PieceState::WPawn,
