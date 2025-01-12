@@ -1,3 +1,5 @@
+mod chess;
+
 use axum::{http::StatusCode, routing::get, Router};
 
 async fn healthcheck() -> StatusCode {
