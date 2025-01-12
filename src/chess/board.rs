@@ -22,7 +22,10 @@ impl ChessBoard {
         
         // Split the piece positions by row
         let rows: Vec<&str> = board_part.split('/').collect();
-        assert_eq!(rows.len(), 8, "Invalid FEN: must have 8 rows");
+
+        if rows.len() != 8 {
+            return Err(format!("Invalid FEN: must have 8 rows"));
+        }
 
         // Process each char of each row
         for (row_index, row) in rows.iter().enumerate() {
@@ -106,5 +109,104 @@ impl ChessBoard {
             12 => PieceState::BKing,
             _  => unreachable!("Invalid nibble: {}", nibble),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_new(){
+        let board = ChessBoard::new();
+        for y in 0..7{
+            for x in 0..7{
+                assert!(matches!(board.get_piece(x,y), PieceState::Empty));
+            }
+        }
+    }
+
+    #[test]
+    fn test_from_fen(){
+        let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+        let board = ChessBoard::from_fen(fen).unwrap();
+
+        // black top
+        assert!(matches!(board.get_piece(0, 0), PieceState::BRook));
+        assert!(matches!(board.get_piece(0, 1), PieceState::BKnight));
+        assert!(matches!(board.get_piece(0, 2), PieceState::BBishop));
+        assert!(matches!(board.get_piece(0, 3), PieceState::BQueen));
+        assert!(matches!(board.get_piece(0, 4), PieceState::BKing));
+        assert!(matches!(board.get_piece(0, 5), PieceState::BBishop));
+        assert!(matches!(board.get_piece(0, 6), PieceState::BKnight));
+        assert!(matches!(board.get_piece(0, 7), PieceState::BRook));
+        
+        // black pawns
+        for x in 0..7 {
+            assert!(matches!(board.get_piece(1, x), PieceState::BPawn));
+        }
+
+        // empty rows
+        for y in 2..5 {
+            for x in 0..7 {
+                assert!(matches!(board.get_piece(y, x), PieceState::Empty));
+            }
+        }
+
+        // white pawns
+        for x in 0..7 {
+            assert!(matches!(board.get_piece(6, x), PieceState::WPawn));
+        }
+
+        // white bottom
+        assert!(matches!(board.get_piece(7, 0), PieceState::WRook));
+        assert!(matches!(board.get_piece(7, 1), PieceState::WKnight));
+        assert!(matches!(board.get_piece(7, 2), PieceState::WBishop));
+        assert!(matches!(board.get_piece(7, 3), PieceState::WQueen));
+        assert!(matches!(board.get_piece(7, 4), PieceState::WKing));
+        assert!(matches!(board.get_piece(7, 5), PieceState::WBishop));
+        assert!(matches!(board.get_piece(7, 6), PieceState::WKnight));
+        assert!(matches!(board.get_piece(7, 7), PieceState::WRook));
+    }
+
+    #[test]
+    fn test_from_fen_not_enough_rows(){
+        let fen = "8/8/8/8/8/8/8";
+        let result = ChessBoard::from_fen(fen);
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "Invalid FEN: must have 8 rows");
+    }
+
+    #[test]
+    fn test_from_fen_too_many_rows() {
+        let fen = "8/8/8/8/8/8/8/8/8";
+        let result = ChessBoard::from_fen(fen);
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "Invalid FEN: must have 8 rows");
+    }
+
+    #[test]
+    fn test_from_fen_row_too_many_columns() {
+        let fen = "8/8/8/8/8/8/ppppppppp/8";
+        let result = ChessBoard::from_fen(fen);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Invalid FEN: row: ppppppppp"));
+    }
+
+    #[test]
+    fn test_from_fen_invalid_piece_char() {
+        // 'x' is not a valid FEN character
+        let fen = "8/8/8/8/8/8/8/rnbqkbnx";
+        let result = ChessBoard::from_fen(fen);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Invalid FEN: piece character: x"));
+    }
+
+    #[test]
+    fn test_from_fen_digit_too_large_for_remaining_columns() {
+        let fen = "8/8/8/8/8/8/8/9";
+        let result = ChessBoard::from_fen(fen);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Invalid FEN: row: 9"));
     }
 }
