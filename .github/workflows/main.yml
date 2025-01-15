@@ -44,5 +44,5 @@ jobs:
       with:
         app-name: 'openchess-api'
         slot-name: 'production'
-        publish-profile: ${{ secrets.AzureAppService_PublishProfile }}
+        publish-profile: ${{ secrets.AzureAppService_PublishProfile_A831175DF3F0476B9E4A64C8332C9D1D }}
         images: 'ghcr.io/boehnen/openchess-api:${{ github.sha }}'
