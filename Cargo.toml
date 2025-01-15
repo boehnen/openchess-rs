@@ -7,3 +7,7 @@ edition = "2021"
 axum = "0.8.1"
 serde = { version = "1.0.217", features = ["derive"] }
 tokio = { version = "1.43.0", features = ["full"] }
+
+[[bin]]
+name = "openchess-rs"
+path = "src/main.rs"
