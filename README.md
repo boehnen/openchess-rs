@@ -6,7 +6,6 @@ To use the API, send a GET request with the desired board position in FEN notati
 ``` bash
 curl -X GET 'https://chess.boehnen.net/v1?fen=r1bqkbnr/pppppppp/2n5/8/8/2N5/PPPPPPPP/R1BQKBNR'
 ```
-Replace {fen} with the board position in FEN notation.
 
 ### Response
 The `200 OK` response is an SVG image of the chessboard representing the specified FEN position. The image can be saved or embedded in a webpage, and scaled to any desired resolution.
