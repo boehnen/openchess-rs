@@ -1,7 +1,7 @@
 pub trait IntoBoard {
     type Board;
 
-    fn into_board(self: Self) -> Result<Self::Board, String>;
+    fn into_board(self: Self) -> Result<Self::Board, anyhow::Error>;
 }
 
 pub trait IntoSvg {
