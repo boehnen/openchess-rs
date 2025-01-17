@@ -16,7 +16,7 @@ async fn chess(params: Query<ChessParams>) -> Result<String, String> {
 
     let board = params.fen.into_board()?;
 
-    Ok(board.into_svg())
+    Ok(board.into_svg(()))
 }
 
 #[tokio::main]

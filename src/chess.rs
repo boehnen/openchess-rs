@@ -144,7 +144,9 @@ impl Board {
 }
 
 impl IntoSvg for Board {
-    fn into_svg(self: Self) -> String {
+    type Options = ();
+
+    fn into_svg(self: Self, _: Self::Options) -> String {
         todo!()
     }
 }

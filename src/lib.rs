@@ -5,7 +5,9 @@ pub trait IntoBoard {
 }
 
 pub trait IntoSvg {
-    fn into_svg(self: Self) -> String;
+    type Options;
+
+    fn into_svg(self: Self, options: Self::Options) -> String;
 }
 
 pub mod chess;
