@@ -145,7 +145,7 @@ impl Board {
 
 impl IntoSvg for Board {
     fn into_svg(self: Self) -> String {
-        String::new()
+        todo!()
     }
 }
 
