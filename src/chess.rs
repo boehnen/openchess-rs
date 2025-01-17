@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use serde::Deserialize;
 
 use crate::{IntoBoard, IntoSvg};
@@ -8,7 +9,7 @@ pub struct Fen(String);
 impl IntoBoard for Fen {
     type Board = Board;
 
-    fn into_board(self: Self) -> Result<Self::Board, String> {
+    fn into_board(self: Self) -> Result<Self::Board, anyhow::Error> {
         let mut board = Board::new();
 
         // Isolate the piece positions from the rest of FEN notation
@@ -18,7 +19,7 @@ impl IntoBoard for Fen {
         let rows: Vec<&str> = board_part.split('/').collect();
 
         if rows.len() != 8 {
-            return Err(format!("Invalid FEN: must have 8 rows"));
+            return Err(anyhow!("Invalid FEN: must have 8 rows"));
         }
 
         // Process each char of each row
@@ -28,16 +29,16 @@ impl IntoBoard for Fen {
             for c in row.chars() {
                 if col_index == 8 {
                     // The row contains information for too many pieces (>8)
-                    return Err(format!("Invalid FEN: row: {row}"));
+                    return Err(anyhow!("Invalid FEN: row: {row}"));
                 } else if c.is_ascii_digit() {
                     if let Some(digit) = c.to_digit(10) {
                         if digit < 1 || digit > (8 - col_index) {
                             // The digit in the row claimed 0 or too many empty pieces
-                            return Err(format!("Invalid FEN: row: {row}"));
+                            return Err(anyhow!("Invalid FEN: row: {row}"));
                         }
                         col_index += digit;
                     } else {
-                        return Err(format!("Character {c} failed to convert to digit"));
+                        return Err(anyhow!("Character {c} failed to convert to digit"));
                     }
                 } else {
                     let piece = Piece::from_char(c)?;
@@ -73,7 +74,7 @@ pub enum Piece {
 
 impl Piece {
     /// Maps FEN piece notation to PieceState Enum
-    fn from_char(c: char) -> Result<Piece, String> {
+    fn from_char(c: char) -> Result<Piece, anyhow::Error> {
         match c {
             'P' => Ok(Piece::WPawn),
             'p' => Ok(Piece::BPawn),
@@ -87,7 +88,7 @@ impl Piece {
             'q' => Ok(Piece::BQueen),
             'K' => Ok(Piece::WKing),
             'k' => Ok(Piece::BKing),
-            _ => Err(format!("Invalid FEN: piece character: {c}")),
+            _ => Err(anyhow!("Invalid FEN: piece character: {c}")),
         }
     }
 }
