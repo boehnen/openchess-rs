@@ -215,7 +215,10 @@ mod tests {
         let result = fen.into_board();
 
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err(), "Invalid FEN: must have 8 rows");
+        assert_eq!(
+            format!("{}", result.unwrap_err()),
+            "Invalid FEN: must have 8 rows"
+        );
     }
 
     #[test]
@@ -224,7 +227,10 @@ mod tests {
         let result = fen.into_board();
 
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err(), "Invalid FEN: must have 8 rows");
+        assert_eq!(
+            format!("{}", result.unwrap_err()),
+            "Invalid FEN: must have 8 rows"
+        );
     }
 
     #[test]
@@ -233,7 +239,7 @@ mod tests {
         let result = fen.into_board();
 
         assert!(result.is_err());
-        assert!(result.unwrap_err().contains("Invalid FEN: row: ppppppppp"));
+        assert!(format!("{}", result.unwrap_err()).contains("Invalid FEN: row: ppppppppp"));
     }
 
     #[test]
@@ -243,9 +249,7 @@ mod tests {
         let result = fen.into_board();
 
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .contains("Invalid FEN: piece character: x"));
+        assert!(format!("{}", result.unwrap_err()).contains("Invalid FEN: piece character: x"));
     }
 
     #[test]
@@ -254,6 +258,6 @@ mod tests {
         let result = fen.into_board();
 
         assert!(result.is_err());
-        assert!(result.unwrap_err().contains("Invalid FEN: row: 9"));
+        assert!(format!("{}", result.unwrap_err()).contains("Invalid FEN: row: 9"));
     }
 }
