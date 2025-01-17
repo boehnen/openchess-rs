@@ -9,7 +9,7 @@ pub struct Fen(String);
 impl IntoBoard for Fen {
     type Board = Board;
 
-    fn into_board(self: Self) -> Result<Self::Board, anyhow::Error> {
+    fn into_board(self) -> Result<Self::Board, anyhow::Error> {
         let mut board = Board::new();
 
         // Isolate the piece positions from the rest of FEN notation
@@ -139,15 +139,21 @@ impl Board {
         }
     }
 
-    pub fn set_piece(self: &mut Self, row: u32, col: u32, piece: Piece) -> () {
+    pub fn set_piece(&mut self, row: u32, col: u32, piece: Piece) {
         self.rows[row as usize] |= (piece as u32) << Self::col_shift(col);
+    }
+}
+
+impl Default for Board {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
 impl IntoSvg for Board {
     type Options = ();
 
-    fn into_svg(self: Self, _: Self::Options) -> String {
+    fn into_svg(self, _: Self::Options) -> String {
         todo!()
     }
 }
