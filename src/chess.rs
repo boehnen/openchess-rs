@@ -9,7 +9,7 @@ pub struct Fen(String);
 impl IntoBoard for Fen {
     type Board = Board;
 
-    fn into_board(self: Self) -> Result<Self::Board, anyhow::Error> {
+    fn into_board(self) -> Result<Self::Board, anyhow::Error> {
         let mut board = Board::new();
 
         // Isolate the piece positions from the rest of FEN notation
@@ -139,15 +139,21 @@ impl Board {
         }
     }
 
-    pub fn set_piece(self: &mut Self, row: u32, col: u32, piece: Piece) -> () {
+    pub fn set_piece(&mut self, row: u32, col: u32, piece: Piece) {
         self.rows[row as usize] |= (piece as u32) << Self::col_shift(col);
+    }
+}
+
+impl Default for Board {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
 impl IntoSvg for Board {
     type Options = ();
 
-    fn into_svg(self: Self, _: Self::Options) -> String {
+    fn into_svg(self, _: Self::Options) -> String {
         todo!()
     }
 }
@@ -215,7 +221,10 @@ mod tests {
         let result = fen.into_board();
 
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err(), "Invalid FEN: must have 8 rows");
+        assert_eq!(
+            format!("{}", result.unwrap_err()),
+            "Invalid FEN: must have 8 rows"
+        );
     }
 
     #[test]
@@ -224,7 +233,10 @@ mod tests {
         let result = fen.into_board();
 
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err(), "Invalid FEN: must have 8 rows");
+        assert_eq!(
+            format!("{}", result.unwrap_err()),
+            "Invalid FEN: must have 8 rows"
+        );
     }
 
     #[test]
@@ -233,7 +245,7 @@ mod tests {
         let result = fen.into_board();
 
         assert!(result.is_err());
-        assert!(result.unwrap_err().contains("Invalid FEN: row: ppppppppp"));
+        assert!(format!("{}", result.unwrap_err()).contains("Invalid FEN: row: ppppppppp"));
     }
 
     #[test]
@@ -243,9 +255,7 @@ mod tests {
         let result = fen.into_board();
 
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .contains("Invalid FEN: piece character: x"));
+        assert!(format!("{}", result.unwrap_err()).contains("Invalid FEN: piece character: x"));
     }
 
     #[test]
@@ -254,6 +264,6 @@ mod tests {
         let result = fen.into_board();
 
         assert!(result.is_err());
-        assert!(result.unwrap_err().contains("Invalid FEN: row: 9"));
+        assert!(format!("{}", result.unwrap_err()).contains("Invalid FEN: row: 9"));
     }
 }
