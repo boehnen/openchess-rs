@@ -1,6 +1,7 @@
 use axum::{
     extract::Query,
     http::StatusCode,
+    middleware,
     response::{IntoResponse, Response},
     routing::get,
     Router,
@@ -8,6 +9,9 @@ use axum::{
 use lib_openchess::{chess::Fen, IntoBoard, IntoSvg};
 use serde::Deserialize;
 use thiserror::Error;
+use tracing::{error, info};
+
+mod logger;
 
 #[derive(Error, Debug)]
 enum ApiError {
@@ -17,6 +21,8 @@ enum ApiError {
 
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
+        error!("API error occurred: {}", self);
+
         match self {
             Self::LogicError(error) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
@@ -46,9 +52,16 @@ async fn chess(params: Query<ChessParams>) -> Result<String, ApiError> {
 
 #[tokio::main]
 async fn main() {
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::INFO)
+        .init();
+
     let app = Router::new()
         .route("/healthcheck", get(healthcheck))
-        .route("/chess", get(chess));
+        .route("/chess", get(chess))
+        .layer(middleware::from_fn(logger::print_request_response));
+
+    info!("Starting server on 0.0.0.0:8080");
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
 
