@@ -3,8 +3,8 @@ OpenChess is a RESTful API that generates chessboard images in SVG format based 
 
 ### Example Request
 To use the API, send a GET request with the desired board position in FEN notation using the fen query parameter:
-``` bash
-curl -X GET 'https://chess.boehnen.net/v1?fen=r1bqkbnr/pppppppp/2n5/8/8/2N5/PPPPPPPP/R1BQKBNR'
+```
+https://chess.boehnen.net/chess/v1?fen=r1bqkbnr/pppppppp/2n5/8/8/2N5/PPPPPPPP/R1BQKBNR
 ```
 
 ### Response
@@ -38,7 +38,7 @@ While these components can still be included in the fen query, they are ignored 
 
 ### Example of saving the response:
 ``` bash
-curl -X GET 'https://chess.boehnen.net/v1?fen=r1bqkbnr/pppppppp/2n5/8/8/2N5/PPPPPPPP/R1BQKBNR' -o board.svg
+curl -X GET 'https://chess.boehnen.net/chess/v1?fen=r1bqkbnr/pppppppp/2n5/8/8/2N5/PPPPPPPP/R1BQKBNR' -o board.svg
 ```
 
 # Running the OpenChess API
@@ -64,16 +64,16 @@ Build the project:
 cargo build --release
 ```
 
-### Run the API:
+Run the API:
 ``` bash
 cargo run --release
 ```
 By default, the API will start on `http://127.0.0.1:8080`. You can adjust the port or host in the configuration file or by setting environment variables.
 
 ### Test the API
-Once the API is running, test it using a curl command:
-``` bash
-curl -X GET 'http://127.0.0.1:8080/v1?fen=r1bqkbnr/pppppppp/2n5/8/8/2N5/PPPPPPPP/R1BQKBNR'
+Once the API is running, test it by hitting the endpoint:
+```
+http://127.0.0.1:8080/chess/v1?fen=r1bqkbnr/pppppppp/2n5/8/8/2N5/PPPPPPPP/R1BQKBNR
 ```
 You should receive an SVG image of the chessboard as a response.
 
