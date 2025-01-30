@@ -1,16 +1,16 @@
 use anyhow::anyhow;
 use serde::Deserialize;
 
-use crate::{IntoBoard, IntoSvg};
+use crate::{Board, IntoBoard};
 
 #[derive(Deserialize)]
 pub struct Fen(String);
 
 impl IntoBoard for Fen {
-    type Board = Board;
+    type Piece = ChessPiece;
 
-    fn into_board(self) -> Result<Self::Board, anyhow::Error> {
-        let mut board = Board::new();
+    fn into_board(self) -> Result<Board<Self::Piece>, anyhow::Error> {
+        let mut board = Board::<ChessPiece>::new();
 
         // Isolate the piece positions from the rest of FEN notation
         let board_part = self.0.split_whitespace().next().unwrap_or(self.0.as_ref());
@@ -24,7 +24,7 @@ impl IntoBoard for Fen {
 
         // Process each char of each row
         for (row_index, row) in rows.iter().enumerate() {
-            let mut col_index = 0;
+            let mut col_index: usize = 0;
 
             for c in row.chars() {
                 if col_index == 8 {
@@ -32,18 +32,18 @@ impl IntoBoard for Fen {
                     return Err(anyhow!("Invalid FEN: row: {row}"));
                 } else if c.is_ascii_digit() {
                     if let Some(digit) = c.to_digit(10) {
-                        if digit < 1 || digit > (8 - col_index) {
+                        if digit < 1 || digit as usize > (8 - col_index) {
                             // The digit in the row claimed 0 or too many empty pieces
                             return Err(anyhow!("Invalid FEN: row: {row}"));
                         }
-                        col_index += digit;
+                        col_index += digit as usize;
                     } else {
                         return Err(anyhow!("Character {c} failed to convert to digit"));
                     }
                 } else {
-                    let piece = Piece::from_char(c)?;
+                    let piece = ChessPiece::from_char(c)?;
                     // Shift PieceState value left col columns and bitwise OR with current row state
-                    board.set_piece(row_index as u32, col_index, piece);
+                    board.set_piece(row_index, col_index, piece);
                     col_index += 1;
                 }
             }
@@ -54,9 +54,10 @@ impl IntoBoard for Fen {
 }
 
 /// Chess pieces
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
 #[repr(C)]
-pub enum Piece {
+pub enum ChessPiece {
+    #[default]
     Empty = 0,
     WPawn = 2,
     BPawn = 3,
@@ -72,89 +73,24 @@ pub enum Piece {
     BKing = 13,
 }
 
-impl Piece {
+impl ChessPiece {
     /// Maps FEN piece notation to PieceState Enum
-    fn from_char(c: char) -> Result<Piece, anyhow::Error> {
+    fn from_char(c: char) -> Result<ChessPiece, anyhow::Error> {
         match c {
-            'P' => Ok(Piece::WPawn),
-            'p' => Ok(Piece::BPawn),
-            'N' => Ok(Piece::WKnight),
-            'n' => Ok(Piece::BKnight),
-            'B' => Ok(Piece::WBishop),
-            'b' => Ok(Piece::BBishop),
-            'R' => Ok(Piece::WRook),
-            'r' => Ok(Piece::BRook),
-            'Q' => Ok(Piece::WQueen),
-            'q' => Ok(Piece::BQueen),
-            'K' => Ok(Piece::WKing),
-            'k' => Ok(Piece::BKing),
+            'P' => Ok(ChessPiece::WPawn),
+            'p' => Ok(ChessPiece::BPawn),
+            'N' => Ok(ChessPiece::WKnight),
+            'n' => Ok(ChessPiece::BKnight),
+            'B' => Ok(ChessPiece::WBishop),
+            'b' => Ok(ChessPiece::BBishop),
+            'R' => Ok(ChessPiece::WRook),
+            'r' => Ok(ChessPiece::BRook),
+            'Q' => Ok(ChessPiece::WQueen),
+            'q' => Ok(ChessPiece::BQueen),
+            'K' => Ok(ChessPiece::WKing),
+            'k' => Ok(ChessPiece::BKing),
             _ => Err(anyhow!("Invalid FEN: piece character: {c}")),
         }
-    }
-}
-
-/// Board state structure
-#[derive(Clone, Copy, Debug)]
-pub struct Board {
-    rows: [u32; 8], // 8 rows of 32 bits, each piece is allocated 4 bits to represent 13 possible states
-}
-
-impl Board {
-    /// Initializes a new ChessBoard with empty pieces
-    pub fn new() -> Self {
-        Self { rows: [0; 8] }
-    }
-
-    /// Returns an amount to shift a PieceState value to affect the desired column
-    fn col_shift(col: u32) -> u32 {
-        col * 4 // each piece is allocated 4 bits
-    }
-
-    /// Returns a mask that singles out the desired column
-    /// e.g. col 0: 0x0000000F
-    /// e.g. col 7: 0xF0000000
-    fn col_mask(col: u32) -> u32 {
-        0xF << Self::col_shift(col)
-    }
-
-    /// Returns the PieceState at the given position
-    pub fn get_piece(&self, row: u32, col: u32) -> Piece {
-        // mask the column from the row then shift to lower 4 bits
-        let nibble = (self.rows[row as usize] & Self::col_mask(col)) >> Self::col_shift(col);
-        match nibble {
-            0 => Piece::Empty,
-            2 => Piece::WPawn,
-            3 => Piece::BPawn,
-            4 => Piece::WKnight,
-            5 => Piece::BKnight,
-            6 => Piece::WBishop,
-            7 => Piece::BBishop,
-            8 => Piece::WRook,
-            9 => Piece::BRook,
-            10 => Piece::WQueen,
-            11 => Piece::BQueen,
-            12 => Piece::WKing,
-            13 => Piece::BKing,
-            _ => unreachable!("Invalid nibble: {}", nibble),
-        }
-    }
-
-    pub fn set_piece(&mut self, row: u32, col: u32, piece: Piece) {
-        self.rows[row as usize] |= (piece as u32) << Self::col_shift(col);
-    }
-}
-
-impl Default for Board {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl IntoSvg for Board {
-    type Options = ();
-
-    fn into_svg(self, _: Self::Options) -> String {
-        todo!()
     }
 }
 
@@ -164,10 +100,10 @@ mod tests {
 
     #[test]
     fn test_new() {
-        let board = Board::new();
+        let board = Board::<ChessPiece>::new();
         for y in 0..8 {
             for x in 0..8 {
-                assert!(matches!(board.get_piece(x, y), Piece::Empty));
+                assert!(matches!(board.get_piece(x, y), ChessPiece::Empty));
             }
         }
     }
@@ -178,41 +114,41 @@ mod tests {
         let board = fen.into_board().unwrap();
 
         // black top
-        assert!(matches!(board.get_piece(0, 0), Piece::BRook));
-        assert!(matches!(board.get_piece(0, 1), Piece::BKnight));
-        assert!(matches!(board.get_piece(0, 2), Piece::BBishop));
-        assert!(matches!(board.get_piece(0, 3), Piece::BQueen));
-        assert!(matches!(board.get_piece(0, 4), Piece::BKing));
-        assert!(matches!(board.get_piece(0, 5), Piece::BBishop));
-        assert!(matches!(board.get_piece(0, 6), Piece::BKnight));
-        assert!(matches!(board.get_piece(0, 7), Piece::BRook));
+        assert!(matches!(board.get_piece(0, 0), ChessPiece::BRook));
+        assert!(matches!(board.get_piece(0, 1), ChessPiece::BKnight));
+        assert!(matches!(board.get_piece(0, 2), ChessPiece::BBishop));
+        assert!(matches!(board.get_piece(0, 3), ChessPiece::BQueen));
+        assert!(matches!(board.get_piece(0, 4), ChessPiece::BKing));
+        assert!(matches!(board.get_piece(0, 5), ChessPiece::BBishop));
+        assert!(matches!(board.get_piece(0, 6), ChessPiece::BKnight));
+        assert!(matches!(board.get_piece(0, 7), ChessPiece::BRook));
 
         // black pawns
         for x in 0..8 {
-            assert!(matches!(board.get_piece(1, x), Piece::BPawn));
+            assert!(matches!(board.get_piece(1, x), ChessPiece::BPawn));
         }
 
         // empty rows
         for y in 2..6 {
             for x in 0..8 {
-                assert!(matches!(board.get_piece(y, x), Piece::Empty));
+                assert!(matches!(board.get_piece(y, x), ChessPiece::Empty));
             }
         }
 
         // white pawns
         for x in 0..8 {
-            assert!(matches!(board.get_piece(6, x), Piece::WPawn));
+            assert!(matches!(board.get_piece(6, x), ChessPiece::WPawn));
         }
 
         // white bottom
-        assert!(matches!(board.get_piece(7, 0), Piece::WRook));
-        assert!(matches!(board.get_piece(7, 1), Piece::WKnight));
-        assert!(matches!(board.get_piece(7, 2), Piece::WBishop));
-        assert!(matches!(board.get_piece(7, 3), Piece::WQueen));
-        assert!(matches!(board.get_piece(7, 4), Piece::WKing));
-        assert!(matches!(board.get_piece(7, 5), Piece::WBishop));
-        assert!(matches!(board.get_piece(7, 6), Piece::WKnight));
-        assert!(matches!(board.get_piece(7, 7), Piece::WRook));
+        assert!(matches!(board.get_piece(7, 0), ChessPiece::WRook));
+        assert!(matches!(board.get_piece(7, 1), ChessPiece::WKnight));
+        assert!(matches!(board.get_piece(7, 2), ChessPiece::WBishop));
+        assert!(matches!(board.get_piece(7, 3), ChessPiece::WQueen));
+        assert!(matches!(board.get_piece(7, 4), ChessPiece::WKing));
+        assert!(matches!(board.get_piece(7, 5), ChessPiece::WBishop));
+        assert!(matches!(board.get_piece(7, 6), ChessPiece::WKnight));
+        assert!(matches!(board.get_piece(7, 7), ChessPiece::WRook));
     }
 
     #[test]
